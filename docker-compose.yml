@@ -61,6 +61,8 @@ services:
     extends:
       file: ./services/frontend.yml
       service: frontend
+    ports:
+      - '3000:3000'
 
   stats-db-init:
     extends:
