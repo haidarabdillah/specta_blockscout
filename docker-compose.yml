@@ -66,13 +66,6 @@ services:
     ports:
       - "3000:3000"
 
-  explorer:
-    extends:
-      file: ./services/docker-compose-explorer.yml
-      service: explorer
-    ports:
-      - "5000:3000"
-
   stats-db-init:
     extends:
       file: ./services/docker-compose-stats.yml
