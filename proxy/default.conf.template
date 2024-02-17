@@ -118,45 +118,6 @@ server {
     }
 }
 
-server {
-    listen 443;
-    server_name mainnet.petachain.io;
-
-    ssl_certificate /etc/nginx/templates/petachain.io/certificate.crt;
-    ssl_certificate_key /etc/nginx/templates/petachain.io/private.key;
-
-    ssl_session_cache  builtin:1000  shared:SSL:10m;
-    ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
-    ssl_prefer_server_ciphers on;
-
-    add_header 'Access-Control-Allow-Origin' '*';
-    add_header 'Access-Control-Allow-Credentials' 'true' always;
-    add_header 'Access-Control-Allow-Methods' 'PUT, GET, POST, OPTIONS, DELETE, PATCH' always;
-
-    proxy_set_header Access-Control-Allow-Origin *;
-    proxy_set_header Access-Control-Allow-Methods "PUT, GET, POST, OPTIONS, DELETE, PATCH";
-
-
-    access_log            /var/log/nginx/rpc.log;
-
-    location / {
-
-      proxy_set_header  Host $host;
-      proxy_set_header  X-Real-IP $remote_addr;
-      proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header  X-Forwarded-Proto $scheme;
-
-      proxy_pass          http://node:8545;
-      proxy_read_timeout  90;
-
-      add_header 'Access-Control-Allow-Origin' '*' always;
-      add_header 'Access-Control-Allow-Methods' 'PUT, GET, POST, OPTIONS, DELETE, PATCH' always;
-      add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization' always;
-    }
-  }
-
-
   server {
     listen 443 ssl;
     server_name blockscout.petachain.io;
