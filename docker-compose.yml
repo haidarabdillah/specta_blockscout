@@ -1,28 +1,50 @@
 version: '3.9'
 
 services:
-  redis-db:
+  swapdb:
+    image: postgres:14
+    container_name: swapdb
+    environment:
+      POSTGRES_DB: petaswap
+      POSTGRES_USER: peta
+      POSTGRES_PASSWORD: peta
+    ports:
+      - "5433:5432"
+    restart: always
+
+  node:
+    image: geth:0.0.1
+    container_name: node
+    ports:
+      - "8545:8545"
+      - "8546:8546"
+    volumes:
+      - /mnt/data/.ethereum:/root/.ethereum
+
+  redis_db:
     extends:
-      file: ./services/redis.yml
-      service: redis-db
+      file: ./services/docker-compose-redis.yml
+      service: redis_db
 
   db-init:
     extends:
-      file: ./services/db.yml
+      file: ./services/docker-compose-db.yml
       service: db-init
 
   db:
     extends:
-      file: ./services/db.yml
+      file: ./services/docker-compose-db.yml
       service: db
 
   backend:
     depends_on:
       - db
-      - redis-db
+      - redis_db
     extends:
-      file: ./services/backend.yml
+      file: ./services/docker-compose-backend.yml
       service: backend
+    ports:
+      - "4000:4000"
     build:
       context: ..
       dockerfile: ./docker/Dockerfile
@@ -34,49 +56,60 @@ services:
         CACHE_TOTAL_GAS_USAGE_COUNTER_ENABLED: ""
         CACHE_ADDRESS_WITH_BALANCES_UPDATE_INTERVAL: ""
         ADMIN_PANEL_ENABLED: ""
-        RELEASE_VERSION: 6.1.0
+        RELEASE_VERSION: 5.3.2
     links:
       - db:database
     environment:
-        ETHEREUM_JSONRPC_HTTP_URL: http://45.77.243.232:8545
-        ETHEREUM_JSONRPC_TRACE_URL: http://45.77.243.232:8545
-        #ETHEREUM_JSONRPC_WS_URL: ws://host.docker.internal:8545/
-        CHAIN_ID: '5758'
+        ETHEREUM_JSONRPC_HTTP_URL: http://139.180.184.141:8545/
+        ETHEREUM_JSONRPC_TRACE_URL: http://139.180.184.141:8545/
+        ETHEREUM_JSONRPC_WS_URL: ws://139.180.184.141:8546/
+        CHAIN_ID: '234'
+        FIRST_BLOCK: 0
+        TRACE_FIRST_BLOCK: 0
 
   visualizer:
     extends:
-      file: ./services/visualizer.yml
+      file: ./services/docker-compose-visualizer.yml
       service: visualizer
 
   sig-provider:
     extends:
-      file: ./services/sig-provider.yml
+      file: ./services/docker-compose-sig-provider.yml
       service: sig-provider
 
   frontend:
     depends_on:
       - backend
     extends:
-      file: ./services/frontend.yml
+      file: ./services/docker-compose-frontend.yml
       service: frontend
+    ports:
+      - "3000:3000"
+
+  explorer:
+    extends:
+      file: ./services/docker-compose-explorer.yml
+      service: explorer
+    ports:
+      - "5000:3000"
 
   stats-db-init:
     extends:
-      file: ./services/stats.yml
+      file: ./services/docker-compose-stats.yml
       service: stats-db-init
 
   stats-db:
     depends_on:
       - backend
     extends:
-      file: ./services/stats.yml
+      file: ./services/docker-compose-stats.yml
       service: stats-db
 
   stats:
     depends_on:
       - stats-db
     extends:
-      file: ./services/stats.yml
+      file: ./services/docker-compose-stats.yml
       service: stats
 
   proxy:
@@ -85,5 +118,8 @@ services:
       - frontend
       - stats
     extends:
-      file: ./services/nginx.yml
+      file: ./services/docker-compose-nginx.yml
       service: proxy
+
+volumes:
+  redis-data:
